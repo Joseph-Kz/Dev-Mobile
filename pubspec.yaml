@@ -33,8 +33,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_native_splash: ^2.2.2
   audio_video_progress_bar: ^0.10.0
-  assets_audio_player: ^3.0.4+3
-  percent_indicator: ^4.2.2
   just_audio: ^0.9.24
 
 dev_dependencies:

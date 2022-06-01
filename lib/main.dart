@@ -1,7 +1,6 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import 'models/music.dart';
 import 'models/page_manager.dart';
