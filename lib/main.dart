@@ -1,6 +1,10 @@
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import 'models/music.dart';
+import 'models/page_manager.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,26 +40,38 @@ List<Music> myMusicList = [
   Music('This is Clement', 'Clement', 'assets/Clement.jpg',
       'assets/Rick Astley  Never Gonna Give You Up Video.mp3'),
   Music('Heat Waves', 'GlassAnimals', 'assets/HeatWaves.jpeg',
-      'assets/Glass Animals  Heat Waves')
+      'assets/Glass Animals  Heat Waves.mp3')
 ];
-late AnimationController _animationController;
-bool isPlaying = false;
 
-// @override
-// void initState() {
-//   super initState();
-//   _animationController = AnimationController(
-//     vsync: this, // the SingleTickerProviderStateMixin
-//     duration: Duration(milliseconds: 450),
-//   );
-// }
-// @override
-// void dispose() {
-//   _animationController.dispose();
-//   super.dispose();
-// }
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+  var i = 0;
+  late AnimationController _animationController;
+  bool isPlaying = false;
+  final _player = AudioPlayer();
+  // late final PageManager _pageManager;
 
-class _MyHomePageState extends State<MyHomePage> {
+  Future<void> initSong(String urlSong) async {
+    await _player.setAudioSource(AudioSource.uri(Uri.parse(urlSong)));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initSong(myMusicList[i].urlSong);
+    _pageManager = PageManager();
+    _animationController = AnimationController(
+      vsync: this, // the SingleTickerProviderStateMixin
+      duration: Duration(milliseconds: 400),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,50 +86,105 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             SizedBox(height: 30),
             Image.asset(
-              myMusicList[0].imagePath, // image path
+              myMusicList[i].imagePath, // image path
               height: 250,
             ),
-            SizedBox(height: 40),
+            SizedBox(height: 30),
             Text(
-              myMusicList[0].title,
+              myMusicList[i].title,
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 30.0,
                   fontStyle: FontStyle.italic,
                   fontFamily: 'cursive'),
             ),
-            SizedBox(height: 40),
+            SizedBox(height: 20),
             Text(
-              myMusicList[0].singer,
+              myMusicList[i].singer,
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15.0,
                   fontFamily: 'Ariel'),
             ),
-            SizedBox(height: 40),
-            Row(children: [
-              Icon(
-                Icons.fast_rewind,
-              ),
-              IconButton(
-                  iconSize: 150,
-                  splashColor: Color.fromARGB(255, 0, 5, 3),
-                  icon: AnimatedIcon(
-                    icon: AnimatedIcons.play_pause,
-                    progress: _animationController,
-                  ),
-                  onPressed: () => {
-                        setState(() {
-                          isPlaying = !isPlaying;
-                          // isPlaying
-                          // ? _animationController.forward()
-                          // : _animationController.reverse();
-                        })
+            SizedBox(height: 20),
+            Container(
+                width: 300,
+                child: ProgressBar(
+                  progress: Duration(seconds: 0),
+                  total: Duration(seconds: 180),
+                  progressBarColor: Colors.indigo,
+                  thumbColor: Color.fromARGB(0, 0, 0, 0),
+                  barHeight: 3.0,
+                  thumbRadius: 8.0,
+                  onSeek: (duration) {
+                    _player.seek(duration);
+                  },
+                )),
+            // ValueListenableBuilder<ProgressBarState>(
+            //   valueListenable: _pageManager.progressNotifier,
+            //   builder: (_, value, __) {
+            //     return ProgressBar(
+            //       progress: value.current,
+            //       buffered: value.buffered,
+            //       total: value.total,
+            //       onSeek: _pageManager.seek,
+            //     );
+            //   },
+            // ),
+            SizedBox(height: 20),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                      iconSize: 40,
+                      icon: Icon(Icons.fast_rewind),
+                      onPressed: () {
+                        setState(
+                          () {
+                            if (i == 0) {
+                              i = 2;
+                            } else {
+                              i -= 1;
+                            }
+                            initSong(myMusicList[i].urlSong);
+                          },
+                        );
                       }),
-              Icon(
-                Icons.fast_forward,
-              ),
-            ])
+                  IconButton(
+                      iconSize: 70,
+                      splashColor: Color.fromARGB(255, 0, 5, 3),
+                      icon: AnimatedIcon(
+                        icon: AnimatedIcons.play_pause,
+                        progress: _animationController,
+                      ),
+                      onPressed: () => {
+                            setState(() {
+                              if (isPlaying) {
+                                _animationController.reverse();
+                                _player.pause();
+                                isPlaying = false;
+                              } else {
+                                _animationController.forward();
+                                _player.play();
+                                isPlaying = true;
+                              }
+                            }),
+                          }),
+                  IconButton(
+                      iconSize: 40,
+                      icon: Icon(Icons.fast_forward),
+                      onPressed: () {
+                        setState(() {
+                          if (i == 2) {
+                            i = 0;
+                          } else {
+                            i++;
+                          }
+                          initSong(myMusicList[i].urlSong);
+                        });
+                      }),
+                ]),
           ],
         )));
   }
